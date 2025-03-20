@@ -14,7 +14,9 @@ foreach ($dir in $directories) {
     Write-Host "Processing directory: $($dir.FullName)"
     
     # # Example: Run SQL scripts in each directory
-    $sqlFiles = Get-ChildItem -Path $dir.FullName -Filter "*.sql"
+    # $sqlFiles = Get-ChildItem -Path $dir.FullName -Filter "*.sql"
+    $sqlFiles = Get-ChildItem -Path $dir.FullName -Include "*.sql", "*.pks", "*.pkb" -Recurse | Sort-Object Extension -Descending
+    Write-Host $sqlFiles
     foreach ($file in $sqlFiles) {
         $LogFile = "$LogDir/$dir_$($file.Name)_$Timestamp.log"
     # Header for log file
@@ -27,7 +29,7 @@ Write-Host "Executing: $dir/$($file.Name) at $(Get-Date -Format 'HH:mm:ss')"
 
 # $TempSql = [System.IO.Path]::GetTempFileName() + ".sql"
 $tempFile = New-TemporaryFile
-"SET ECHO ON`nSET SERVEROUTPUT ON SIZE 1000000`nSPOOL ./spool.txt append`n@""$($file.FullName)""`nSPOOL OFF`nEXIT;" | Out-File -FilePath $tempFile -Encoding ASCII
+"SET PACKAGE OFF`nSET ECHO ON`nSET SERVEROUTPUT ON SIZE 1000000`nSPOOL ./spool.txt append`n@""$($file.FullName)""`n/`nSPOOL OFF`nEXIT;" | Out-File -FilePath $tempFile -Encoding ASCII
 # Run the SQL file and capture output
     $output = sqlplus -L  "$username/$password@$connectionString" "@$tempFile"
    # $output = sqlplus -S "$username/$password@$connectionString" "@$TempSql;"
@@ -50,7 +52,7 @@ $tempFile = New-TemporaryFile
     }
         "Completed at $(Get-Date -Format 'HH:mm:ss')" | Out-File -FilePath $LogFile -Append
         "----------------" | Out-File -FilePath $LogFile -Append
-
+    
     Write-Host "Execution completed. See $LogFile for details."
     }
 }
