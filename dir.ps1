@@ -43,7 +43,7 @@ Write-Host "Executing: $dir/$($file.Name) at $(Get-Date -Format 'HH:mm:ss')"
 
 # $TempSql = [System.IO.Path]::GetTempFileName() + ".sql"
 $tempFile = New-TemporaryFile
-"SET PACKAGE OFF`nSET ECHO ON`nSET SERVEROUTPUT ON SIZE 1000000`nSPOOL ./spool.txt append`nWHENEVER SQLERROR EXIT SQL.SQLCODE`n@""$($file.FullName)""`n/`nSPOOL OFF`nEXIT;" | Out-File -FilePath $tempFile -Encoding ASCII
+"SET PACKAGE OFF`nSET ECHO ON`nSET SERVEROUTPUT ON SIZE 1000000`nSPOOL ./spool.txt append`nWHENEVER SQLERROR EXIT SQL.SQLCODE`n@""$($file.FullName)""`nSPOOL OFF`nEXIT;" | Out-File -FilePath $tempFile -Encoding ASCII
 # Run the SQL file and capture output
     $output = sqlplus -L  "$username/$password@$connectionString" "@$tempFile"
    # $output = sqlplus -S "$username/$password@$connectionString" "@$TempSql;"
