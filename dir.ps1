@@ -7,13 +7,22 @@ $connectionString = "192.168.0.134:1521/pcard" # TNS entry or host:port/service_
 $LogDir = "./log_files"
 $afterRunDir = './after_run'
 
-#START JS2603B - added a variable to control what folder to run on
-$currentDir = "000_Sequences"
-#END JS2603B
+
+
 
 #variables
 $Timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 
+# START JS2803C - added a prompt to take the folder name as input
+$currentDir = Read-Host -Prompt "Enter the folder name"
+#START JS2803E - restored the variable
+
+#END JS2803E
+# START JS2803D - Execute only if the path exists
+if((Test-Path -Path "./sql_files/$currentDir"))
+{
+# END JS2803D
+$dirPath = "./sql_files/$currentDir\*"
 #Initial setup
 #clear log file dir
 Remove-Item -Path "$LogDir\*"
@@ -34,27 +43,33 @@ if (!(Test-Path -Path "$afterRunDir")) {
 
 
 # Get all directories in a specific location
-$directories = Get-ChildItem -Path "./sql_files" -Directory
+# JS2803A  START commenting as these are not needed
+# $directories = Get-ChildItem -Path "./sql_files" -Directory
+# JS2803A  END 
 
 # Loop through each directory
-foreach ($dir in $directories) {
+# JS2803B  START removing the foreach loop in recent iteration
+# foreach ($dir in $directories) {
+# JS2803B  END
     # Write-Host "Processing directory: $($dir.FullName)"
-    
+
     # $sqlFiles = Get-ChildItem -Path $dir.FullName -Filter "*.sql"
-    $sqlFiles = Get-ChildItem -Path $dir.FullName -Include "*.sql", "*.pks", "*.pkb" -Recurse | Sort-Object Extension -Descending
+    # START JS2803E - Changing the filter to remove recurse
+    # $sqlFiles = Get-ChildItem -Path $dir.FullName -Include "*.sql", "*.pks", "*.pkb" -Recurse | Sort-Object Extension -Descending
+    $sqlFiles = Get-ChildItem -Path $dirPath -Include "*.sql", "*.pks", "*.pkb"  | Sort-Object Extension -Descending
     Write-Host $sqlFiles
     foreach ($file in $sqlFiles) {
         #START JS2603 - Changes the log file name to include the folder name
         #$LogFile = "$LogDir/$dir_$($file.Name)_$Timestamp.log"
-        $LogFile = "$LogDir/$dir/$($file.Name)_$Timestamp.log"
+        $LogFile = "$LogDir/$currentDir/$($file.Name)_$Timestamp.log"
         #END JS2603
     # Header for log file
 "===== SQL Execution Log - Started $(Get-Date) =====" | Out-File -FilePath $LogFile
-"Directory: $dir" | Out-File -FilePath $LogFile -Append
+"Directory: $currentDir" | Out-File -FilePath $LogFile -Append
 "================================================" | Out-File -FilePath $LogFile -Append
 
 "`n" | Out-File -FilePath $LogFile -Append
-Write-Host "Executing: $dir/$($file.Name) at $(Get-Date -Format 'HH:mm:ss')"
+Write-Host "Executing: $currentDir/$($file.Name) at $(Get-Date -Format 'HH:mm:ss')"
 
 # $TempSql = [System.IO.Path]::GetTempFileName() + ".sql"
 $tempFile = New-TemporaryFile
@@ -100,4 +115,12 @@ $tempFile = New-TemporaryFile
 
     
     }
+# START JS2803D
 }
+# END JS2803D
+# JS2803B  START removing the foreach loop in recent iteration
+# }
+else {
+    Write-Host "Path not found."
+}
+# JS2803B  END
