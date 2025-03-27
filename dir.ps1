@@ -21,25 +21,30 @@ $currentDir = Read-Host -Prompt "Enter the folder name"
 # START JS2803D - Execute only if the path exists
 if((Test-Path -Path "./sql_files/$currentDir"))
 {
+    Write-Host "file path found."
+    [System.Console]::Clear()
 # END JS2803D
 $dirPath = "./sql_files/$currentDir\*"
 #Initial setup
 #clear log file dir
-Remove-Item -Path "$LogDir\*"
+Remove-Item -Path "$LogDir\*" -Recurse
 #START JS2603C - create folders if they do not exist
 if (!(Test-Path -Path "$LogDir")) {
     Write-Host "Path not found. Creating $LogDir"
     New-Item -ItemType Directory -Path "$LogDir"
 }
+
+if (!(Test-Path -Path "$afterRunDir")) {
+    New-Item -ItemType Directory -Path "$afterRunDir"
+}
+
 if (!(Test-Path -Path "$Logdir/$currentDir")) {
     Write-Host "Path not found. Creating $Logdir/$currentDir"
     New-Item -ItemType Directory -Path "$Logdir/$currentDir" 
 }
 #END JS2603C
 
-if (!(Test-Path -Path "$afterRunDir")) {
-    New-Item -ItemType Directory -Path "$afterRunDir"
-}
+
 
 
 # Get all directories in a specific location
@@ -109,7 +114,7 @@ $tempFile = New-TemporaryFile
         "Completed at $(Get-Date -Format 'HH:mm:ss')" | Out-File -FilePath $LogFile -Append
         "----------------" | Out-File -FilePath $LogFile -Append
 
-    Write-Host "Execution completed. See $LogFile for details." .\.git
+    Write-Host "Execution completed. See $LogFile for details." 
     # Write-Host "current file path - $file"
     # Write-Host "Destination file path - $afterRunDir\$folderName\$($file.Name)"
 
